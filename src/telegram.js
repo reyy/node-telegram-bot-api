@@ -98,8 +98,10 @@ TelegramBot.prototype._request = function (path, options) {
   options = options || {};
   options.url = this._buildURL(path);
   debug('HTTP request: %j', options);
+  //console.log(JSON.stringify(options));
   return requestPromise(options)
     .then(function (resp) {
+      //console.log(JSON.stringify(resp));
       if (resp[0].statusCode !== 200) {
         throw new Error(resp[0].statusCode+' '+resp[0].body);
       }
@@ -245,6 +247,22 @@ TelegramBot.prototype._formatSendData = function (type, data) {
   return [formData, fileId];
 };
 
+TelegramBot.prototype._formatSendDataSpecial = function (type, data) {
+  var formData;
+  var fileName;
+  var fileId;
+    fileName = "voice.ogg";
+    formData = {};
+    formData[type] = {
+      value: data,
+      options: {
+        filename: "voice.ogg",
+        contentType: "audio/ogg"
+      }
+    };
+  return [formData, fileId];
+};
+
 /**
  * Send photo
  * @param  {Number|String} chatId  Unique identifier for the message recipient
@@ -365,6 +383,16 @@ TelegramBot.prototype.sendVoice = function (chatId, voice, options) {
   return this._request('sendVoice', opts);
 };
 
+TelegramBot.prototype.sendVoiceSpecial = function (chatId, voice, options) {
+  var opts = {
+    qs: options || {}
+  };
+  opts.qs.chat_id = chatId;
+  var content = this._formatSendDataSpecial('voice', voice);
+  opts.formData = content[0];
+  opts.qs.voice = content[1];
+  return this._request('sendVoice', opts);
+};
 
 /**
  * Send chat action.
